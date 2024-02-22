@@ -1,53 +1,58 @@
 #!/usr/bin/python3
-"""Consumimos API para extraer información ficticia"""
+"""
+Script that use
+https://jsonplaceholder.typicode.com/guide/
+to get information and export it as csv
+"""
 import csv
 import requests
-from sys import argv
+from sys import argv, stderr, exit
 
 
 def main():
-    """Consultamos el nombre y las tareas de un empleado."""
-    if len(argv) >= 2 and argv[1].isdigit():
-        id = argv[1]
+    if len(argv) < 2:
+        print("Usage: {} ID".format(argv[0]))
+        exit(1)
 
-        urlid = f"https://jsonplaceholder.typicode.com/users/%7Bid%7D"
-        urltodos = f"https://jsonplaceholder.typicode.com/users/%7Bid%7D/todos"
+    employee_id = int(argv[1])
+    url_to = f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}"
+    response_todo = requests.get(url_to)
+    url_username = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
+    response_username = requests.get(url_username)
 
-        response = requests.get(urlid)
-
-        if response.statuscode != 200:
-            print(f"Ups... tuvimos un problema par consultar el {id}")
-            exit()
-
-        data = response.json()
-        EMPLOYEE_NAME = data['username']
-
-        response = requests.get(url_todos)
-
-        if response.status_code != 200:
-            print(f"Ups... tuvimos un problema par consultar el {id}")
-            exit()
-
-        todos = response.json()
-
-        all_tasks = [todo['title'] for todo in todos]
-        status_task = [todo['completed'] for todo in todos]
-        employee_todos = []
-
-        for index in range(0, len(all_tasks)):
-            record = [str(id), EMPLOYEE_NAME, str(
-                status_task[index]), all_tasks[index]]
-
-            employee_todos.append(record)
-
-        name_file_csv = f'{id}.csv'
-
-        with open(name_file_csv, mode='w', newline='') as f:
-            writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-            writer.writerows(employee_todos)
+    if response_todo.status_code == 200:
+        todos = response_todo.json()
+        total_tasks = len(todos)
+        completed_tasks = [todo for todo in todos if todo['completed']]
+        num_completed_tasks = len(completed_tasks)
     else:
-        print("Se esperaba que ingresará un ID valido")
+        print("Error fetching TODO list")
+
+    if response_username.status_code == 200:
+        employee_data = response_username.json()
+        if "username" in employee_data:
+            employee_username = employee_data.get("username")
+    else:
+        print("Error fetching employee username")
+
+    csv_file = "{}.csv".format(employee_id)
+    with open(csv_file, mode='w') as csv_file:
+        fieldnames = ["USER_ID", "USERNAME",
+                      "TASK_COMPLETED_STATUS", "TASK_TITLE"]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames,
+                                quoting=csv.QUOTE_ALL)
+        # writer.writeheader()
+
+        for task in todos:
+            writer.writerow({
+                "USER_ID": '{}'.format(employee_id),
+                "USERNAME": '{}'.format(employee_username),
+                "TASK_COMPLETED_STATUS": '{}'.format(task.get("completed")),
+                "TASK_TITLE": '{}'.format(task.get("title"))
+            })
+
+    print("Data exported to {}".format(csv_file))
 
 
-if __name == '__main':
+if __name__ == "__main__":
     main()
