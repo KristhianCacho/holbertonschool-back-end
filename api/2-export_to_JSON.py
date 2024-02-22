@@ -10,7 +10,7 @@ from sys import argv
 
 def main():
     """
-    Query name and tasks of employee.
+    Query name and tasks of employee
     """
     if len(argv) >= 2 and argv[1].isdigit():
         id = argv[1]
