@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 """
-Module with typing Python
+Anotacion add
 """
 
 
 def add(a: float, b: float) -> float:
     """
-        Args:
-            a: The first parameter
-            b: The second parameter
-
-        Return:
-            Sum of two floats
-
+    Args:
+    a' first parameter
+    b' second parameter
+    Return:
+    Sum two floats
     """
-
     return (a + b)
